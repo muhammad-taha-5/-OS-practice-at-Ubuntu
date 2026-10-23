@@ -1,0 +1,6 @@
+Welcome to OS lab
+This is line two
+Operating Systems assignment
+Multi processing with fork
+Text to be searched is here on row five
+Line six text

@@ -4,7 +4,34 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+
+void search_file(const char *filename, const char *target, int start_line, int end_line) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: can be not opened.");
+        exit(1);
+    }
+        
+              char line[1024];
+              int current_row = 1;
+        
+              while (fgets(line, sizeof(line), file)) {
+                  if (current_row >= start_line && current_row <= end_line) {
+                      char *ptr = strstr(line, target);
+                      if (ptr != NULL) {
+                          int col = (ptr - line) + 1; 
+                          printf("Text found at row %d col %d\n", current_row, col);
+                      }
+                  }
+                  current_row++;
+                  if (current_row > end_line) break;
+              }
+        
+              fclose(file);
+}              
+
 int main(int argc, char *argv[]) {
+    
     if (argc < 3) {
         printf("Usage: %s <filename> <search_string>\n", argv[0]);
         return 1;
@@ -13,15 +40,15 @@ int main(int argc, char *argv[]) {
     char *filename = argv[1];
     char *target = argv[2];
 
-    // Total lines calculate karne ke liye file open
+   
     FILE *fp = fopen(filename, "r");
     if (fp == NULL) {
-        printf("Error: File open nahi ho saki.\n");
+        printf("Error: not  found.");
         return 1;
     }
 
     int total_lines = 0;
-    char ch;
+    int ch; 
     while ((ch = fgetc(fp)) != EOF) {
         if (ch == '\n') {
             total_lines++;
@@ -29,9 +56,14 @@ int main(int argc, char *argv[]) {
     }
     fclose(fp);
 
+  
+    if (total_lines == 0) {
+        return 0;
+    }
+
     int lines_per_child = total_lines / 4;
 
-    // 4 Child processes create karna
+    
     for (int i = 0; i < 4; i++) {
         int start = i * lines_per_child + 1;
         int end = (i == 3) ? total_lines : (i + 1) * lines_per_child;
@@ -39,29 +71,13 @@ int main(int argc, char *argv[]) {
         pid_t pid = fork();
 
         if (pid == 0) {
-            // Child process execution
-            FILE *file = fopen(filename, "r");
-            if (file != NULL) {
-                char line[1024];
-                int current_row = 1;
-
-                while (fgets(line, sizeof(line), file)) {
-                    if (current_row >= start && current_row <= end) {
-                        char *ptr = strstr(line, target);
-                        if (ptr != NULL) {
-                            int col = (ptr - line) + 1;
-                            printf("Text found at row %d col %d\n", current_row, col);
-                        }
-                    }
-                    current_row++;
-                }
-                fclose(file);
-            }
-            exit(0); // Child exit
+          
+            search_file(filename, target, start, end);
+            exit(0); 
         }
     }
 
-    // Parent wait karega sabhi children ke liye
+    
     for (int i = 0; i < 4; i++) {
         wait(NULL);
     }
