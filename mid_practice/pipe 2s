@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+# define reads 0
+# define write 1
+// inputing  the  arr  through  the  commad  line 
+int main( int argc ,  char* argv[]){
+if (argc < 2){
+printf("enter  the  numbers  atleast more  than  4 \s\d\n" ,argv[0])
+return 1;
+}
+
+int n =argc-1; // this  the  count  of  the  arr 
+
+int p1[2];
+int p2[2];
+iF( pipe(p1)== -1||pipe(p2)== -1){
+printf("pipe  not  created \s\n" );
+return 1;
+}
+
+pid_t pid = fork();
+if(pid  < 0){
+printf("fork  failed  to make  two  differnt  process\s\n")
+}
+
+if(pid == 0 ){
+close(p1[write]);
+close(p2[reads]);
+int ch_arr[n];
+
+read(p1[reads] ,ch_arr ,sizeof(ch_arr));
+close(p1[reads]);
+// sorting 
+for (int i = 0; i < n - 1; i++) {
+ for (int j = 0; j < n - i - 1; j++) {
+  if(ch_arr[i] > ch_arr[j+1]){
+  int temp =  ch_arr[j];
+   ch_arr[j]= ch_arr[j+1];
+    ch_arr[j] = temp;
+   }               
+  }
+}
+
+write(p2[writes] ,ch_arr , sizeof(ch_arr));
+close(p2[writes]);
+exit(0)
+}
+
+else {
+
+close(p1[reads]);  
+close(p2[writes]); 
+
+int ori_arr[n];
+int sorted_arr[n];
+
+for( int i=0; i<n ; i++ ){
+ori_arr[i]=atio(argv[i+1);
+}
+
+write(p1[writes],ori_arr sizeof(ori_arr));
+close(p1[writes]);
+
+read(p2[reads],sorted_arr sizeof(sorted_arr))
+close(p2[reads]);
+
+
+wait(NULL);
+
+        // --- TERMINAL PAR SORTED ARRAY PRINT KAREIN[cite: 17] ---
+        printf("Original Array: ");
+        for (int i = 0; i < n; i++) {
+            printf("%d ", original_arr[i]);
+        }
+        printf("\n");
+
+        printf("Sorted Array:   ");
+        for (int i = 0; i < n; i++) {
+            printf("%d ", sorted_arr[i]);
+        }
+        printf("\n");
+}
+
+return 0;
+}
